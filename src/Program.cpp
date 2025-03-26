@@ -5,7 +5,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "cmd_parser.hpp"
+#include "command_line_parser.h"
+#include "application.h"
+#include <exception>
 namespace fs = std::filesystem;
 
 const fs::path result_folder("output");
@@ -14,19 +16,31 @@ const fs::path input_folder("input");
 
 void decode_encode_img(std::string filepath, image_codec *codec);
 
-namespace po = boost::program_options;
 int main(int ac, char *av[]) {
     std::cout << "Shellow from SSAU!" << std::endl;
 
     try {
-        po::variables_map vm = parse_arguments(ac, av);
+            CommandLineParser parser;
+            auto options = parser.parse(ac, av);
 
-    } catch (std::exception &e) {
-        std::cerr << "error: " << e.what() << "\n";
-        return 1;
-    } catch (...) {
-        std::cerr << "Exception of unknown type!\n";
-    }
+            if (options.show_help) {
+                parser.print_help();
+                return 0;
+            }
+
+            if (options.show_version) {
+                parser.print_version();
+                return 0;
+            }
+
+            Application app(options);
+            app.run();
+
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << "\n";
+            std::cerr << "Use -h for help\n";
+            return 1;
+        }
 
 
 }
